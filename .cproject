@@ -24,6 +24,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FlowerPlatformArduino_Runtime/StandardCplusplus}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FlowerPlatformArduino_Runtime/DHT}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FlowerPlatformArduino_Runtime/Webduino}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FlowerPlatformArduino_Runtime/Libraries/Ethernet}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FlowerPlatformArduino_Runtime/Libraries/Ethernet/src}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.cpp.sketch.input.1227027586" name="CPP source files" superClass="it.baeyens.arduino.compiler.cpp.sketch.input"/>
 							</tool>
@@ -34,6 +36,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FlowerPlatformArduino_Runtime/StandardCplusplus}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FlowerPlatformArduino_Runtime/DHT}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FlowerPlatformArduino_Runtime/Webduino}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FlowerPlatformArduino_Runtime/Libraries/Ethernet}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FlowerPlatformArduino_Runtime/Libraries/Ethernet/src}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.c.sketch.input.1288290455" name="C Source Files" superClass="it.baeyens.arduino.compiler.c.sketch.input"/>
 							</tool>

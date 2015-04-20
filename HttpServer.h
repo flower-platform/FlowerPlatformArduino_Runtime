@@ -6,25 +6,25 @@
 #define HttpServer_h
 
 #include <Ethernet.h>
-#include <HardwareSerial.h>
+#include <FlowerPlatformArduinoRuntime.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <WebServer.h>
 #include <WString.h>
 
-#include "FlowerPlatformArduinoRuntime.h"
-
 #define URL_MAP_SIZE 8
+
+class HttpServer;
 
 class HttpCommandEvent : public Event {
 public:
 
 	String command;
 
-};
+	HttpServer* server;
 
-class HttpServer;
+};
 
 
 class HttpServer : public Component {
@@ -69,13 +69,23 @@ public:
 	    urlMappings[INSTANCE->urlCount++].listener = listener;
 	}
 
+	void print(String s) {
+		int len = s.length() + 1;
+		char sChar[len];
+		s.toCharArray(sChar, len, 0);
+		webServer->print(sChar);
+	}
+
 	static void webServerRequestReceived(WebServer &server, WebServer::ConnectionType type, char *url_tail, bool tail_complete) {
-		Serial.print(type); Serial.print(" "); Serial.print(url_tail); Serial.print(" "); Serial.print(tail_complete); Serial.println();
+//		Serial.print(type); Serial.print(" "); Serial.print(url_tail); Serial.print(" "); Serial.print(tail_complete); Serial.println();
 		UrlMapping mapping;
 		String mappingUrl, requestedUrl = String(url_tail);
 
 		HttpCommandEvent event;
 		event.command = requestedUrl.substring(1);
+		event.server = INSTANCE;
+
+		server.httpSuccess();
 
 		for (int i = 0; i < INSTANCE->urlCount; i++) {
 			mapping = INSTANCE->urlMappings[i];
@@ -84,6 +94,7 @@ public:
 				mapping.listener->handleEvent(&event);
 			}
 		}
+
 	}
 
 
