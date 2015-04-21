@@ -6,11 +6,11 @@
 #define UpdatesBuffer_h
 
 #include <Arduino.h>
-#include <FlowerPlatformArduinoRuntime.h>
-#include <HardwareSerial.h>
 #include <stdbool.h>
 #include <WString.h>
 #include <vector>
+
+#include "FlowerPlatformArduinoRuntime.h"
 
 class AttributeEntry {
 public:
@@ -54,18 +54,20 @@ public:
 	}
 
 	void makeJson() {
-		json = "{";
+		String json = "{";
 		for (unsigned int i = 0; i < attributeEntries->size(); i++) {
+			String key = attributeEntries->at(i)->key;
+			String value = attributeEntries->at(i)->value;
 			json += "\"";
-			json += attributeEntries->at(i)->key;
-			json += "\": \"";
-			json += attributeEntries->at(i)->value;
-			json += "\"";
+			json += key;
+			json += "\": ";
+			json += value;
 			if (i != attributeEntries->size() - 1 ) {
 				json += ", ";
 			}
 		}
 		json += "}";
+		this->json = json;
 	}
 
 	String getJson() {

@@ -50,10 +50,10 @@ public:
 	virtual void setup() {
 
 		static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-		static uint8_t ip[] = { 192, 168, 100, 137 };
+		static uint8_t ip[] = { 192, 168, 100, 253 };
 
-		webServer = new WebServer(urlPrefix, port);
 		Ethernet.begin(mac, ip);
+		webServer = new WebServer(urlPrefix, port);
 		webServer->begin();
 		webServer->setFailureCommand(&webServerRequestReceived);
 		webServer->setDefaultCommand(&webServerRequestReceived);
@@ -69,6 +69,14 @@ public:
 	    urlMappings[INSTANCE->urlCount++].listener = listener;
 	}
 
+	void httpSuccess(const char *contentType = "text/html; charset=utf-8", const char *extraHeaders = NULL) {
+		webServer->httpSuccess(contentType, extraHeaders);
+	}
+
+	void print(const char* s) {
+		webServer->print(s);
+	}
+
 	void print(String s) {
 		int len = s.length() + 1;
 		char sChar[len];
@@ -77,15 +85,13 @@ public:
 	}
 
 	static void webServerRequestReceived(WebServer &server, WebServer::ConnectionType type, char *url_tail, bool tail_complete) {
-//		Serial.print(type); Serial.print(" "); Serial.print(url_tail); Serial.print(" "); Serial.print(tail_complete); Serial.println();
+//		Serial.print(type); Serial.print(" * "); Serial.print(url_tail); Serial.print(" * "); Serial.print(tail_complete); Serial.println();
 		UrlMapping mapping;
 		String mappingUrl, requestedUrl = String(url_tail);
 
 		HttpCommandEvent event;
 		event.command = requestedUrl.substring(1);
 		event.server = INSTANCE;
-
-		server.httpSuccess();
 
 		for (int i = 0; i < INSTANCE->urlCount; i++) {
 			mapping = INSTANCE->urlMappings[i];
