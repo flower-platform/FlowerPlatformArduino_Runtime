@@ -46,10 +46,12 @@ protected:
 
 };
 
+// forward declaration
+class EventDispatcher;
 class Event {
 public:
 
-	Component* component;
+	EventDispatcher* target;
 
 	int type;
 
@@ -62,6 +64,20 @@ public:
 
 	virtual void handleEvent(Event* event) { }
 
+};
+
+template <class T> class DelagatingListener : public Listener {
+protected:
+	T* instance;
+	void (T::*functionPointer)(Event* event);
+public:
+	DelagatingListener(T* _instance, void (T::*_functionPointer)(Event* event)) {
+		instance = _instance;
+		functionPointer = _functionPointer;
+	}
+	virtual void handleEvent(Event* event) {
+		(*instance.*functionPointer)(event);
+	}
 };
 
 class EventDispatcher {

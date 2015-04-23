@@ -46,7 +46,7 @@ public:
 		if (currentTemperature != previousTemperature) {
 			ValueChangedEvent event;
 			event.type = EVENT_TYPE_TEMPERATURE_CHANGED;
-			event.component = this;
+			event.target = this;
 			event.currentValue = currentTemperature;
 			event.previousValue = previousTemperature;
 			previousTemperature = currentTemperature;
@@ -56,7 +56,7 @@ public:
 		if (currentHumidity != previousHumidity) {
 			ValueChangedEvent event;
 			event.type = EVENT_TYPE_HUMIDITY_CHANGED;
-			event.component = this;
+			event.target = this;
 			event.currentValue = currentHumidity;
 			event.previousValue = previousHumidity;
 			previousHumidity = currentHumidity;

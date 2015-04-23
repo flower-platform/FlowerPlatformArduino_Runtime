@@ -31,7 +31,7 @@ public:
 	    }
 
 		ValueChangedEvent event;
-		event.component = this;
+		event.target = this;
 		event.previousValue = lastValue;
 		event.currentValue = value;
 
