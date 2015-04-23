@@ -3,17 +3,17 @@
 
 #include <Arduino.h>
 #include <FlowerPlatformArduinoRuntime.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 class Input : public Component, public EventDispatcher {
 protected:
 	int lastValue = -1;
 
-	virtual int getEventTypeOffset() {
-		return EVENT_TYPE_VALUE_CHANGED;
-	}
-
 public:
 	static int EVENT_TYPE_VALUE_CHANGED;
+
+	Input() : EventDispatcher(3, EVENT_TYPE_VALUE_CHANGED) { }
 
 	uint8_t pin;
 	bool isAnalog = false;

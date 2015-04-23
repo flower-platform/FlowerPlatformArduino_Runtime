@@ -15,6 +15,8 @@ public:
 	static int EVENT_TYPE_VALUE_ON;
 	static int EVENT_TYPE_VALUE_OFF;
 
+	DigitalInput() : EventDispatcher(3, EVENT_TYPE_VALUE_CHANGED) { }
+
 	void setPin(int pin) {
 	    this->pin = pin;
 	}
@@ -49,10 +51,6 @@ public:
 	}
 
 protected:
-
-	virtual int getEventTypeOffset() {
-		return EVENT_TYPE_VALUE_CHANGED;
-	}
 
 	int pin;
 

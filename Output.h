@@ -5,9 +5,10 @@
 #ifndef Output_h
 #define Output_h
 
-#include "FlowerPlatformArduinoRuntime.h"
 #include <Arduino.h>
+#include <FlowerPlatformArduinoRuntime.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 class Output : public EventDispatcher {
 protected:
@@ -15,7 +16,8 @@ protected:
 	bool isOn = false;
 
 public:
-	Output(uint8_t pin) {
+
+	Output(uint8_t pin) : EventDispatcher(0, 0) {
 		this->pin = pin;
 	    pinMode(pin, OUTPUT);
 	}

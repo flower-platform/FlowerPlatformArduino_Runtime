@@ -5,8 +5,10 @@
 #ifndef FlowerPlatformArduinoRuntime_h
 #define FlowerPlatformArduinoRuntime_h
 
+#define MAX_LISTENERS_PER_EVENT_TYPE 4
+#define FP_DEBUG
+
 #include <HardwareSerial.h>
-#include <vector>
 
 class Component {
 public:
@@ -22,8 +24,9 @@ public:
 class ApplicationBase {
 public:
 
-	ApplicationBase() {
-		components = new std::vector<Component*>();
+	ApplicationBase(int maxComponentCount) {
+		components = new Component*[maxComponentCount]();
+		componentCount = 0;
 	}
 
 	virtual ~ApplicationBase() {
@@ -31,16 +34,17 @@ public:
 	}
 
 	virtual void loop() {
-		for (int i = 0; i < components->size(); i++) {
-			components->at(i)->loop();
+		for (int i = 0; i < componentCount; i++) {
+			components[i]->loop();
 		}
 	}
 
 protected:
-	std::vector<Component*>* components;
+	int componentCount;
+	Component** components;
 
 	void addComponent(Component* component) {
-		components->push_back(component);
+		components[componentCount++] = component;
 		component->setup();
 	}
 
@@ -66,12 +70,12 @@ public:
 
 };
 
-template <class T> class DelagatingListener : public Listener {
+template <class T> class DelegatingListener : public Listener {
 protected:
 	T* instance;
 	void (T::*functionPointer)(Event* event);
 public:
-	DelagatingListener(T* _instance, void (T::*_functionPointer)(Event* event)) {
+	DelegatingListener(T* _instance, void (T::*_functionPointer)(Event* event)) {
 		instance = _instance;
 		functionPointer = _functionPointer;
 	}
@@ -83,29 +87,24 @@ public:
 class EventDispatcher {
 public:
 
-	EventDispatcher() {
-		listeners = new std::vector<std::vector<Listener*>*>();
+	EventDispatcher(int eventCount, int eventTypeOffset) {
+		this->eventCount = eventCount;
+		this->eventTypeOffset = eventTypeOffset;
+		listeners = new Listener*[eventCount * MAX_LISTENERS_PER_EVENT_TYPE]();
 	}
 
 	virtual ~EventDispatcher() {
-		listeners->clear();
 		delete listeners;
 	}
 
 	void addEventListener(int eventType, Listener* listener) {
-		int vectorIndex = eventType - getEventTypeOffset();
-	//	Serial.print("Vector index: "); Serial.println(vectorIndex);
-		std::vector<Listener*>* eventListeners;
-		if (vectorIndex + 1 > listeners->size()) {
-			eventListeners = new std::vector<Listener*>();
-			listeners->resize(vectorIndex + 1);
+		int eventIndex = eventType - eventTypeOffset;
+		for (int i = eventCount * eventIndex; i < eventCount * eventIndex + MAX_LISTENERS_PER_EVENT_TYPE; i++) {
+			if (!listeners[i]) {
+				listeners[i] = listener;
+				break;
+			}
 		}
-		eventListeners = listeners->at(vectorIndex);
-		if (!eventListeners) {
-			eventListeners = new std::vector<Listener*>();
-			listeners->at(vectorIndex) = eventListeners;
-		}
-		eventListeners->push_back(listener);
 	}
 
 	//void removeEventListener(int eventType, Listener* listener);
@@ -118,30 +117,23 @@ protected:
 		return nextEventType++;
 	}
 
-	std::vector<std::vector<Listener*>*>* listeners;
+	int eventCount;
 
-	virtual int getEventTypeOffset() {
-		return -1;
-	}
+	int eventTypeOffset;
+
+	Listener** listeners;
 
 	void dispatchEvent(Event* event) {
 		Serial.print("Component::dispatchEvent type="); Serial.println(event->type);
 	//	Serial.print("listeners size: "); Serial.println(listeners->size());
 
-		int vectorIndex = event->type - getEventTypeOffset();
-		if (vectorIndex >= listeners->size()) {
-			return;
-		}
-	//	Serial.print("vectorIndex: "); Serial.println(vectorIndex);
-		std::vector<Listener*>* eventListeners = listeners->at(vectorIndex);
-		if (!eventListeners) {
-			return;
-		}
-	//	Serial.print("eventListeners size: "); Serial.println(eventListeners->size());
+		int eventIndex = event->type - eventTypeOffset;
 
-		for (unsigned int i = 0; i < eventListeners->size(); i++) {
-	//		Serial.print("handle: "); Serial.println(i);
-			eventListeners->at(i)->handleEvent(event);
+		for (int i = eventCount * eventIndex; i < eventCount * eventIndex + MAX_LISTENERS_PER_EVENT_TYPE; i++) {
+			if (!listeners[i]) {
+				break;
+			}
+			listeners[i]->handleEvent(event);
 		}
 	}
 

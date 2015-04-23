@@ -5,15 +5,16 @@
 #ifndef HttpServer_h
 #define HttpServer_h
 
+#include <Arduino.h>
 #include <Ethernet.h>
+#include <EthernetServer.h>
 #include <FlowerPlatformArduinoRuntime.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include <HardwareSerial.h>
 #include <stdint.h>
-#include <WebServer.h>
 #include <WString.h>
 
-#define URL_MAP_SIZE 8
+#define URL_MAP_SIZE 16
+#define LINE_BUFFER_SIZE 128
 
 class HttpServer;
 
@@ -24,20 +25,12 @@ public:
 
 	HttpServer* server;
 
-};
+	EthernetClient* client;
 
+};
 
 class HttpServer : public Component {
 public:
-
-	static HttpServer* INSTANCE;
-
-	HttpServer() {
-//		if (HTTP_SERVER_INSTANCE) {
-//			throw 1;
-//		}
-		INSTANCE = this;
-	}
 
 	void setPort(int port) {
 		this->port = port;
@@ -53,50 +46,77 @@ public:
 		static uint8_t ip[] = { 192, 168, 100, 253 };
 
 		Ethernet.begin(mac, ip);
-		webServer = new WebServer(urlPrefix, port);
-		webServer->begin();
-		webServer->setFailureCommand(&webServerRequestReceived);
-		webServer->setDefaultCommand(&webServerRequestReceived);
+		this->server = new EthernetServer(this->port);
 	}
 
 	virtual void loop() {
-//		Serial.println("process connection");
-		webServer->processConnection();
+		// listen for incoming clients
+		EthernetClient client = server->available();
+
+		if (client) {
+			char currentLine[256];
+			int currentLineSize = 0;
+			activeClient = &client;
+			String requestMethod;
+			String requestUrl;
+
+			while (client.connected()) {
+				if (client.available()) {
+					char c = client.read();
+
+					if (c == '\n') {
+						currentLine[currentLineSize] = '\0';
+//						Serial.print(">> "); Serial.println(currentLine);
+
+						if (currentLineSize == 0) {
+							dispatchEvent(requestMethod, requestUrl, activeClient);
+							break;
+						}
+
+						String line(currentLine);
+						if (line.startsWith("GET") || line.startsWith("POST")) {
+							requestMethod = line.substring(0, line.indexOf(' '));
+							requestUrl = line.substring(requestMethod.length() + 2, line.indexOf(' ', requestMethod.length() + 2));
+						}
+						currentLineSize = 0;
+					}
+					else if (c != '\r' && currentLineSize < LINE_BUFFER_SIZE - 1) {
+						currentLine[currentLineSize++] = c;
+					}
+				}
+			}
+
+			// give the web browser time to receive the data
+			delay(1);
+
+			client.stop();
+		}
 	}
 
 	void addUrlHandler(String url, Listener* listener) {
-	    urlMappings[INSTANCE->urlCount].url = url;
-	    urlMappings[INSTANCE->urlCount++].listener = listener;
+	    urlMappings[urlCount].url = url;
+	    urlMappings[urlCount++].listener = listener;
 	}
 
-	void httpSuccess(const char *contentType = "text/html; charset=utf-8", const char *extraHeaders = NULL) {
-		webServer->httpSuccess(contentType, extraHeaders);
+	void httpSuccess(const char *contentType = "text/html; charset=utf-8") {
+		activeClient->println("HTTP/1.1 200 OK");
+		activeClient->print("Content-Type: "); activeClient->println(contentType);
+		activeClient->println("Connection: close");  // the connection will be closed after completion of the response
+		activeClient->println();
 	}
 
-	void print(const char* s) {
-		webServer->print(s);
-	}
-
-	void print(String s) {
-		int len = s.length() + 1;
-		char sChar[len];
-		s.toCharArray(sChar, len, 0);
-		webServer->print(sChar);
-	}
-
-	static void webServerRequestReceived(WebServer &server, WebServer::ConnectionType type, char *url_tail, bool tail_complete) {
-//		Serial.print(type); Serial.print(" * "); Serial.print(url_tail); Serial.print(" * "); Serial.print(tail_complete); Serial.println();
-		UrlMapping mapping;
-		String mappingUrl, requestedUrl = String(url_tail);
+	void dispatchEvent(String requestMethod, String requestUrl, EthernetClient* client) {
+//		Serial.print(requestMethod); Serial.print(" * "); Serial.print(requestUrl); Serial.println();
 
 		HttpCommandEvent event;
-		event.command = requestedUrl.substring(1);
-		event.server = INSTANCE;
+		event.command = requestUrl;
+		event.server = this;
+		event.client = client;
 
-		for (int i = 0; i < INSTANCE->urlCount; i++) {
-			mapping = INSTANCE->urlMappings[i];
-			mappingUrl = "/" + mapping.url;
-			if (mappingUrl.equals(requestedUrl) || mappingUrl == "*") {
+		UrlMapping mapping;
+		for (int i = 0; i < urlCount; i++) {
+			mapping = urlMappings[i];
+			if (mapping.url.equals(requestUrl) || mapping.url == "*") {
 				mapping.listener->handleEvent(&event);
 			}
 		}
@@ -112,7 +132,9 @@ protected:
 
 	int urlCount = 0;
 
-	WebServer* webServer = NULL;
+	EthernetServer* server;
+
+	EthernetClient* activeClient;
 
 	struct UrlMapping {
 		String url;
@@ -120,7 +142,5 @@ protected:
 	} urlMappings[URL_MAP_SIZE];
 
 };
-
-HttpServer* HttpServer::INSTANCE = NULL;
 
 #endif
