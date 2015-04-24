@@ -12,6 +12,8 @@ protected:
 
 public:
 	static int EVENT_TYPE_VALUE_CHANGED;
+	static int EVENT_TYPE_VALUE_ON;
+	static int EVENT_TYPE_VALUE_OFF;
 
 	Input() : EventDispatcher(3, EVENT_TYPE_VALUE_CHANGED) { }
 
@@ -44,10 +46,25 @@ public:
 		dispatchEvent(&event);
 
 		lastValue = value;
+
+		if (isAnalog) {
+			return;
+		}
+
+		if (value == HIGH) {
+			event.type = EVENT_TYPE_VALUE_ON;
+		} else {
+			event.type = EVENT_TYPE_VALUE_OFF;
+		}
+		dispatchEvent(&event);
+
+
 	}
 
 };
 
 int Input::EVENT_TYPE_VALUE_CHANGED = newEventType();
+int Input::EVENT_TYPE_VALUE_ON = newEventType();
+int Input::EVENT_TYPE_VALUE_OFF = newEventType();
 
 #endif

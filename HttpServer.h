@@ -13,6 +13,8 @@
 #include <stdint.h>
 #include <WString.h>
 
+#define DEBUG_HTTP_SERVER 0
+
 #define URL_MAP_SIZE 16
 #define LINE_BUFFER_SIZE 128
 
@@ -66,7 +68,10 @@ public:
 
 					if (c == '\n') {
 						currentLine[currentLineSize] = '\0';
-//						Serial.print(">> "); Serial.println(currentLine);
+
+						#if DEBUG_HTTP_SERVER > 0
+						Serial.print(">> "); Serial.println(currentLine);
+						#endif
 
 						if (currentLineSize == 0) {
 							dispatchEvent(requestMethod, requestUrl, activeClient);
@@ -94,7 +99,15 @@ public:
 	}
 
 	void addUrlHandler(String url, Listener* listener) {
-	    urlMappings[urlCount].url = url;
+	    if (urlCount >= URL_MAP_SIZE) {
+
+	    	#if DEBUG_HTTP_SERVER > 0
+	    	Serial.print("HttpServer.addUrlHandler: "); Serial.println("URL map size limit exceeded");
+			#endif
+
+	    	return;
+	    }
+		urlMappings[urlCount].url = url;
 	    urlMappings[urlCount++].listener = listener;
 	}
 
@@ -106,7 +119,10 @@ public:
 	}
 
 	void dispatchEvent(String requestMethod, String requestUrl, EthernetClient* client) {
-//		Serial.print(requestMethod); Serial.print(" * "); Serial.print(requestUrl); Serial.println();
+
+		#if DEBUG_HTTP_SERVER > 0
+		Serial.print("HttpServer.dispatchEvent: "); Serial.print(requestMethod); Serial.print(" * "); Serial.print(requestUrl); Serial.println();
+		#endif
 
 		HttpCommandEvent event;
 		event.command = requestUrl;

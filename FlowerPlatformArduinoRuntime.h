@@ -6,7 +6,8 @@
 #define FlowerPlatformArduinoRuntime_h
 
 #define MAX_LISTENERS_PER_EVENT_TYPE 4
-#define FP_DEBUG
+
+#define DEBUG_FP 0
 
 #include <HardwareSerial.h>
 
@@ -124,8 +125,10 @@ protected:
 	Listener** listeners;
 
 	void dispatchEvent(Event* event) {
+		#if DEBUG_FP > 0
 		Serial.print("Component::dispatchEvent type="); Serial.println(event->type);
 	//	Serial.print("listeners size: "); Serial.println(listeners->size());
+		#endif
 
 		int eventIndex = event->type - eventTypeOffset;
 
