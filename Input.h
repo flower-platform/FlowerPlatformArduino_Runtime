@@ -9,11 +9,11 @@ protected:
 	int lastValue = -1;
 
 	virtual int getEventTypeOffset() {
-		return EVENT_TYPE_VALUE_CHANGED;
+		return VALUE_CHANGED_EVENT;
 	}
 
 public:
-	static int EVENT_TYPE_VALUE_CHANGED;
+	static int VALUE_CHANGED_EVENT;
 
 	uint8_t pin;
 	bool isAnalog = false;
@@ -40,7 +40,7 @@ public:
 		event.target = this;
 		event.previousValue = lastValue;
 		event.currentValue = value;
-		event.type = EVENT_TYPE_VALUE_CHANGED;
+		event.type = VALUE_CHANGED_EVENT;
 		dispatchEvent(&event);
 
 		lastValue = value;
@@ -48,6 +48,6 @@ public:
 
 };
 
-int Input::EVENT_TYPE_VALUE_CHANGED = newEventType();
+int Input::VALUE_CHANGED_EVENT = newEventType();
 
 #endif
