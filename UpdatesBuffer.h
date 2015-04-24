@@ -5,12 +5,9 @@
 #ifndef UpdatesBuffer_h
 #define UpdatesBuffer_h
 
-#include <Arduino.h>
-#include <stdbool.h>
+#include <FlowerPlatformArduinoRuntime.h>
 #include <WString.h>
-#include <vector>
 
-#include "FlowerPlatformArduinoRuntime.h"
 
 class AttributeEntry {
 public:
@@ -29,8 +26,10 @@ public:
 class UpdatesBuffer : public Component {
 public:
 
-	UpdatesBuffer() {
-		this->attributeEntries = new std::vector<AttributeEntry*>();
+	UpdatesBuffer(int maxAttributeCount) {
+		this->maxAttributeCount = maxAttributeCount;
+		this->attributeEntries = new AttributeEntry*[maxAttributeCount]();
+		this->attributeCount = 0;
 		 json = "{}";
 	}
 
@@ -39,30 +38,35 @@ public:
 	}
 
 	void updateEntry(String key, String value) {
-		boolean found = false;
-		for (unsigned int i = 0; i < attributeEntries->size(); i++) {
-			if (attributeEntries->at(i)->key.equals(key)) {
-				found = true;
-				attributeEntries->at(i)->value = value;
-				break;
-			}
+		int i = 0;
+		while (attributeEntries[i] && !(attributeEntries[i]->key.equals(key))) {
+			i++;
 		}
-		if (!found) {
-			attributeEntries->push_back(new AttributeEntry(key, value));
+
+		if (i >= maxAttributeCount) {
+			// Buffer size limit exceeded
+			return;
 		}
+
+		if (!attributeEntries[i]) {
+			attributeEntries[attributeCount++] = new AttributeEntry(key, value);
+		} else {
+			attributeEntries[i]->value = value;
+		}
+
 		makeJson();
 	}
 
 	void makeJson() {
 		String json = "{";
-		for (unsigned int i = 0; i < attributeEntries->size(); i++) {
-			String key = attributeEntries->at(i)->key;
-			String value = attributeEntries->at(i)->value;
+		for (int i = 0; i < attributeCount; i++) {
+			String key = attributeEntries[i]->key;
+			String value = attributeEntries[i]->value;
 			json += "\"";
 			json += key;
 			json += "\": ";
 			json += value;
-			if (i != attributeEntries->size() - 1 ) {
+			if (i != attributeCount - 1 ) {
 				json += ", ";
 			}
 		}
@@ -76,7 +80,11 @@ public:
 
 protected:
 
-	std::vector<AttributeEntry*>* attributeEntries;
+	AttributeEntry** attributeEntries;
+
+	int maxAttributeCount;
+
+	int attributeCount;
 
 	String json;
 

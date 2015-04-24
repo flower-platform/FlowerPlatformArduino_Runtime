@@ -7,14 +7,15 @@
 
 #include <Arduino.h>
 #include <dht.h>
-
-#include "FlowerPlatformArduinoRuntime.h"
+#include <FlowerPlatformArduinoRuntime.h>
 
 class DHTSensor : public Component, public EventDispatcher  {
 public:
 
 	static int EVENT_TYPE_TEMPERATURE_CHANGED;
 	static int EVENT_TYPE_HUMIDITY_CHANGED;
+
+	DHTSensor() : EventDispatcher(2, EVENT_TYPE_TEMPERATURE_CHANGED) { }
 
 	virtual ~DHTSensor() {
 		delete dhtSensorInstance;
