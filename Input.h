@@ -11,11 +11,11 @@ protected:
 	int lastValue = -1;
 
 public:
-	static int EVENT_TYPE_VALUE_CHANGED;
+	static int VALUE_CHANGED_EVENT;
 	static int EVENT_TYPE_VALUE_ON;
 	static int EVENT_TYPE_VALUE_OFF;
 
-	Input() : EventDispatcher(3, EVENT_TYPE_VALUE_CHANGED) { }
+	Input() : EventDispatcher(3, VALUE_CHANGED_EVENT) { }
 
 	uint8_t pin;
 	bool isAnalog = false;
@@ -42,7 +42,7 @@ public:
 		event.target = this;
 		event.previousValue = lastValue;
 		event.currentValue = value;
-		event.type = EVENT_TYPE_VALUE_CHANGED;
+		event.type = VALUE_CHANGED_EVENT;
 		dispatchEvent(&event);
 
 		lastValue = value;
@@ -63,7 +63,7 @@ public:
 
 };
 
-int Input::EVENT_TYPE_VALUE_CHANGED = newEventType();
+int Input::VALUE_CHANGED_EVENT = newEventType();
 int Input::EVENT_TYPE_VALUE_ON = newEventType();
 int Input::EVENT_TYPE_VALUE_OFF = newEventType();
 
