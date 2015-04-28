@@ -23,7 +23,7 @@ public:
 
 };
 
-class UpdatesBuffer : public Component {
+class UpdatesBuffer {
 public:
 
 	UpdatesBuffer(int maxAttributeCount) {
@@ -74,7 +74,7 @@ public:
 		this->json = json;
 	}
 
-	String getJson() {
+	String getEntriesAsJson() {
 		return json;
 	}
 

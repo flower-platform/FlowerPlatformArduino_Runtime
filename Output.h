@@ -28,16 +28,16 @@ public:
 	}
 
 	void setHigh() {
-		if (lastValue) {
-			return;
-		}
+//		if (lastValue) {
+//			return;
+//		}
 		setValue(HIGH);
 	}
 
 	void setLow() {
-		if (!lastValue) {
-			return;
-		}
+//		if (!lastValue) {
+//			return;
+//		}
 		setValue(LOW);
 	}
 
