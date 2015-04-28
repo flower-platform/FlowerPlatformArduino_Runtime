@@ -7,75 +7,89 @@
 
 #include <Arduino.h>
 #include <FlowerPlatformArduinoRuntime.h>
+#include <HardwareSerial.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 class Output : public EventDispatcher {
 protected:
 	uint8_t pin;
-	bool isOn = false;
+	int lastValue = 0;
 
 public:
 
-	static int EVENT_TYPE_VALUE_CHANGED;
-	static int EVENT_TYPE_VALUE_ON;
-	static int EVENT_TYPE_VALUE_OFF;
+	static int VALUE_CHANGED_EVENT;
 
-	Output(uint8_t pin) : EventDispatcher(3, EVENT_TYPE_VALUE_CHANGED) {
+	bool isPwm = false;
+
+	Output(uint8_t pin) : EventDispatcher(1, VALUE_CHANGED_EVENT) {
 		this->pin = pin;
 	    pinMode(pin, OUTPUT);
 	}
 
 	void setHigh() {
+<<<<<<< HEAD
 //		if (isOn) {
 //			return;
 //		}
 		digitalWrite(pin, HIGH);
 		isOn = true;
 		dispatchEvents();
+=======
+		if (lastValue) {
+			return;
+		}
+		setValue(HIGH);
+>>>>>>> branch 'master' of https://github.com/flower-platform/FlowerPlatformArduino_Runtime.git
 	}
 
 	void setLow() {
+<<<<<<< HEAD
 //		if (!isOn) {
 //			return;
 //		}
 		digitalWrite(pin, LOW);
 		isOn = false;
 		dispatchEvents();
+=======
+		if (!lastValue) {
+			return;
+		}
+		setValue(LOW);
+	}
+
+	void setValue(int value) {
+		if (isPwm) {
+			analogWrite(pin, value);
+		} else {
+			digitalWrite(pin, value);
+		}
+		dispatchEvents(value);
+>>>>>>> branch 'master' of https://github.com/flower-platform/FlowerPlatformArduino_Runtime.git
 	}
 
 	void toggleHighLow() {
-		if (isOn) {
-			setLow();
+		if (lastValue) {
+			setValue(LOW);
 		} else {
-			setHigh();
+			setValue(HIGH);
 		}
-		dispatchEvents();
 	}
 
-	void dispatchEvents() {
+	void dispatchEvents(int value) {
 		ValueChangedEvent event;
 		event.target = this;
-		event.previousValue = isOn ? 0 : 1;
-		event.currentValue = isOn ? 1 : 0;
-
-		event.type = EVENT_TYPE_VALUE_CHANGED;
+		event.previousValue = lastValue;
+		event.currentValue = value;
+		event.type = VALUE_CHANGED_EVENT;
 		dispatchEvent(&event);
 
-		if (isOn) {
-			event.type = EVENT_TYPE_VALUE_ON;
-		} else {
-			event.type = EVENT_TYPE_VALUE_OFF;
-		}
-		dispatchEvent(&event);
-
+		lastValue = value;
 	}
 
 };
 
-int Output::EVENT_TYPE_VALUE_CHANGED = EventDispatcher::newEventType();
-int Output::EVENT_TYPE_VALUE_ON = EventDispatcher::newEventType();
-int Output::EVENT_TYPE_VALUE_OFF = EventDispatcher::newEventType();
+int Output::VALUE_CHANGED_EVENT = EventDispatcher::newEventType();
 
 
 #endif
