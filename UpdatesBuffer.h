@@ -74,7 +74,7 @@ public:
 		this->json = json;
 	}
 
-	String getJson() {
+	String getEntriesAsJson() {
 		return json;
 	}
 

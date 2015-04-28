@@ -28,33 +28,16 @@ public:
 	}
 
 	void setHigh() {
-<<<<<<< HEAD
-//		if (isOn) {
+//		if (lastValue) {
 //			return;
 //		}
-		digitalWrite(pin, HIGH);
-		isOn = true;
-		dispatchEvents();
-=======
-		if (lastValue) {
-			return;
-		}
 		setValue(HIGH);
->>>>>>> branch 'master' of https://github.com/flower-platform/FlowerPlatformArduino_Runtime.git
 	}
 
 	void setLow() {
-<<<<<<< HEAD
-//		if (!isOn) {
+//		if (!lastValue) {
 //			return;
 //		}
-		digitalWrite(pin, LOW);
-		isOn = false;
-		dispatchEvents();
-=======
-		if (!lastValue) {
-			return;
-		}
 		setValue(LOW);
 	}
 
@@ -65,7 +48,6 @@ public:
 			digitalWrite(pin, value);
 		}
 		dispatchEvents(value);
->>>>>>> branch 'master' of https://github.com/flower-platform/FlowerPlatformArduino_Runtime.git
 	}
 
 	void toggleHighLow() {
