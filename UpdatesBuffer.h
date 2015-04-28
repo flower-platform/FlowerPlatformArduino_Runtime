@@ -23,7 +23,7 @@ public:
 
 };
 
-class UpdatesBuffer : public Component {
+class UpdatesBuffer {
 public:
 
 	UpdatesBuffer(int maxAttributeCount) {

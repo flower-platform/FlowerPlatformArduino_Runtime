@@ -27,18 +27,18 @@ public:
 	}
 
 	void setHigh() {
-		if (isOn) {
-			return;
-		}
+//		if (isOn) {
+//			return;
+//		}
 		digitalWrite(pin, HIGH);
 		isOn = true;
 		dispatchEvents();
 	}
 
 	void setLow() {
-		if (!isOn) {
-			return;
-		}
+//		if (!isOn) {
+//			return;
+//		}
 		digitalWrite(pin, LOW);
 		isOn = false;
 		dispatchEvents();
