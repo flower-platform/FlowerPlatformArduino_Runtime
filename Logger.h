@@ -2,14 +2,11 @@
 #define Logger_h
 
 #include <Arduino.h>
-#include <FatApiConstants.h>
-#include <FatFile.h>
 #include <FlowerPlatformArduinoRuntime.h>
 #include <HardwareSerial.h>
 #include <pins_arduino.h>
 #include <stdint.h>
-#include <SdFat.h>
-#include <WString.h>
+#include <SD.h>
 
 
 class Logger : public Component {
@@ -18,11 +15,7 @@ protected:
 
 public:
 
-	String channelName;
-
-	SdFat sd;
-
-	SdFile file;
+//	String channelName;
 
 	char* fileName;
 
@@ -34,37 +27,39 @@ public:
 		digitalWrite(SS, HIGH);
 		pinMode(chipSelectPin, OUTPUT);
 		pinMode(chipSelectPin, HIGH);
-		sd.begin(chipSelectPin);
-
+		SD.begin(chipSelectPin);
 	}
 
 	void log(int value) {
 		unsigned long t = millis();
-		if (!fileName) {
-			fileName = new char[9];
-			int cnLength = channelName.length();
-			String fn;
-			if (channelName.length() <= 8) {
-				fn = fileName;
-				channelName.toCharArray(fileName, cnLength, 0);
-			} else {
-				String fn = channelName.substring(0, 4) + "~";
-				fn += channelName.substring(cnLength - 3);
-				fn.toCharArray(fileName, cnLength, 0);
-			}
-			Serial.println(fileName);
+		if (t < lastTimestamp + timeInterval) {
+			return;
 		}
+//		if (!fileName) {
+//			fileName = new char[9];
+//			int cnLength = channelName.length();
+//			String fn;
+//			if (channelName.length() <= 8) {
+//				fn = fileName;
+//				channelName.toCharArray(fileName, cnLength, 0);
+//			} else {
+//				String fn = channelName.substring(0, 4) + "~";
+//				fn += channelName.substring(cnLength - 3);
+//				fn.toCharArray(fileName, cnLength, 0);
+//			}
+//			Serial.println(fileName);
+//		}
 
-
-		if (file.open(fileName, O_CREAT | O_WRITE)) {
+		File file = SD.open(fileName, FILE_WRITE);
+		if (file) {
 			file.print(t);
-			file.print(" ");
+			file.print(",");
 			file.println(value);
 			file.close();
 		}
 		Serial.print("LOG ");
 		Serial.print(t);
-		Serial.print(" ");
+		Serial.print(",");
 		Serial.println(value);
 	}
 

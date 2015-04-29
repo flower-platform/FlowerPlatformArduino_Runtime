@@ -23,9 +23,9 @@ public:
 	static int TIMER_EVENT;
 	static int TIMER_COMPLETE_EVENT;
 
-	Timer() : EventDispatcher(2, TIMER_EVENT) {
+	Timer(bool autostart) : EventDispatcher(2, TIMER_EVENT) {
 		repeatCount = 0;
-		running = false;
+		running = autostart;
 		lastTimestamp = 0;
 		currentCount = 0;
 	}
