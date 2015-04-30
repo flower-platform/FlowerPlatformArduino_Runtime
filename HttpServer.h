@@ -11,9 +11,9 @@
 #include <FlowerPlatformArduinoRuntime.h>
 #include <HardwareSerial.h>
 #include <stdint.h>
-#include <WString.h>
+#include <string.h>
 
-#define DEBUG_HTTP_SERVER 1
+#define DEBUG_HTTP_SERVER 0
 
 #define URL_MAP_SIZE 16
 #define LINE_BUFFER_SIZE 128
@@ -56,11 +56,9 @@ public:
 		EthernetClient client = server->available();
 
 		if (client) {
-			char currentLine[256];
+			char currentLine[64];
 			int currentLineSize = 0;
 			activeClient = &client;
-			String requestMethod;
-			String requestUrl;
 
 			while (client.connected()) {
 				if (client.available()) {
@@ -70,24 +68,23 @@ public:
 						currentLine[currentLineSize] = '\0';
 
 						#if DEBUG_HTTP_SERVER > 0
-						Serial.print(">> "); Serial.println(currentLine);
+						Serial.print(F(">> ")); Serial.println(currentLine);
 						#endif
 
 						if (currentLineSize == 0) {
-							// TODO CS: temp
-							dispatchEvent("", "getUpdates", NULL);
-//							dispatchEvent(requestMethod, requestUrl, activeClient);
 							break;
 						}
 
-						String line(currentLine);
-						if (line.startsWith("GET") || line.startsWith("POST")) {
-							requestMethod = line.substring(0, line.indexOf(' '));
-							// TODO CS: temp
-//							requestUrl = line.substring(requestMethod.length() + 2, line.indexOf(' ', requestMethod.length() + 2));
-//							requestUrl = "getUpdates";
+						if (strncmp(currentLine, "GET", 3) == 0 || strncmp(currentLine, "POST", 4 == 0)) {
+							char* k = strchr(currentLine, ' ');
+							k[0] = '\0'; // break string
+							k+=2; // skip space and leading url slash
+							char* requestUrl = k;
+							k = strchr(requestUrl, ' ');
+							k[0] = 0;
+							dispatchEvent(currentLine, requestUrl, activeClient);
+							break;
 						}
-						currentLineSize = 0;
 					}
 					else if (c != '\r' && currentLineSize < LINE_BUFFER_SIZE - 1) {
 						currentLine[currentLineSize++] = c;
@@ -97,7 +94,6 @@ public:
 
 			// give the web browser time to receive the data
 			delay(1);
-
 			client.stop();
 		}
 	}
@@ -106,7 +102,7 @@ public:
 	    if (urlCount >= URL_MAP_SIZE) {
 
 	    	#if DEBUG_HTTP_SERVER > 0
-	    	Serial.print("HttpServer.addUrlHandler: "); Serial.println("URL map size limit exceeded");
+	    	Serial.print(F("HttpServer.addUrlHandler: URL map size limit exceeded"));
 			#endif
 
 	    	return;
@@ -116,16 +112,17 @@ public:
 	}
 
 	void httpSuccess(const char *contentType = "text/html; charset=utf-8") {
-		activeClient->println("HTTP/1.1 200 OK");
-		activeClient->print("Content-Type: "); activeClient->println(contentType);
-		activeClient->println("Connection: close");  // the connection will be closed after completion of the response
+		activeClient->println(F("HTTP/1.1 200 OK"));
+		activeClient->print(F("Content-Type: ")); activeClient->println(contentType);
+		activeClient->println(F("Access-Control-Allow-Origin: *"));
+		activeClient->println(F("Connection: close"));  // the connection will be closed after completion of the response
 		activeClient->println();
 	}
 
-	void dispatchEvent(String requestMethod, String requestUrl, EthernetClient* client) {
+	void dispatchEvent(const char* requestMethod, const char* requestUrl, EthernetClient* client) {
 
 		#if DEBUG_HTTP_SERVER > 0
-		Serial.print("HttpServer.dispatchEvent: "); Serial.print(requestMethod); Serial.print(" * "); Serial.print(requestUrl); Serial.println();
+		Serial.print(F("HttpServer.dispatchEvent: ")); Serial.print(requestMethod); Serial.print(F(" * ")); Serial.print(requestUrl); Serial.println();
 		#endif
 
 		HttpCommandEvent event;
@@ -136,14 +133,8 @@ public:
 		UrlMapping mapping;
 		for (int i = 0; i < urlCount; i++) {
 			mapping = urlMappings[i];
-			// TODO CS: temp	
-			Serial.print(i); Serial.print(i); Serial.println(mapping.url);
 			if (mapping.url.equals(requestUrl) || mapping.url == "*") {
-				// TODO CS: temp
-				Serial.println("before");
 				mapping.listener->handleEvent(&event);
-				// TODO CS: temp
-				Serial.println("after");
 			}
 		}
 

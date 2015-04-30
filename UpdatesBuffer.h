@@ -6,20 +6,23 @@
 #define UpdatesBuffer_h
 
 #include <FlowerPlatformArduinoRuntime.h>
-#include <WString.h>
+#include <Print.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 class AttributeEntry {
 public:
 
-	AttributeEntry(String key, String value) {
-		this->key = key;
-		this->value = value;
+	AttributeEntry(const char* key, const char* value) {
+		this->key = new char[strlen(key) + 1];
+		strcpy(this->key, key);
+		strcpy(this->value, value);
 	}
 
-	String key;
+	char* key;
 
-	String value;
+	char value[4];
 
 };
 
@@ -30,69 +33,45 @@ public:
 		this->maxAttributeCount = maxAttributeCount;
 		this->attributeEntries = new AttributeEntry*[maxAttributeCount]();
 		this->attributeCount = 0;
-		json = "{}";
 	}
 
-	void updateEntry(String key, int value) {
-		updateEntry(key, String(value));
+	void updateEntry(const char* key, int value) {
+		char valueStr[4];
+		itoa(value, valueStr, 10);
+		updateEntry(key, valueStr);
 	}
 
-	void updateEntry(String key, String value) {
-	// TODO CS: old/remove
-//		int i = 0;
-//		while (attributeEntries[i] && !(attributeEntries[i]->key.equals(key))) {
-//			i++;
-//		}
-//
-//		if (i >= maxAttributeCount) {
-//			// Buffer size limit exceeded
-//			return;
-//		}
-//
-//		if (!attributeEntries[i]) {
-//			attributeEntries[attributeCount++] = new AttributeEntry(key, value);
-//		} else {
-//			attributeEntries[i]->value = value;
-//		}
+	void updateEntry(const char* key, const char* value) {
+		int i;
+		for (i = 0; i < attributeCount; i++) {
+//			Serial.print(attributeEntries[i]->key); Serial.print(F(" ")); Serial.println(key);
+			if (strcmp(attributeEntries[i]->key, key) == 0) {
+				break;
+			}
+		}
 
-	// TODO CS: uncomment
-//		int i;
-//		for (i = 0; i < attributeCount; i++) {
-//			if (attributeEntries[i]->key.equals(key)) {
-//				break;
-//			}
-//		}
-//
-//		if (i >= attributeCount) {
-//			// i.e. was not found
-//			attributeEntries[attributeCount++] = new AttributeEntry(key, value);
-//		} else {
-//			attributeEntries[i]->value = value;
-//		}
-
-		makeJson();
+		if (i >= attributeCount) {
+			// i.e. was not found
+			attributeEntries[attributeCount++] = new AttributeEntry(key, value);
+		} else {
+			strcpy(attributeEntries[i]->value, value);
+		}
 	}
 
-	void makeJson() {
-		String json = "{";
-		// TODO CS: uncomment
-//		for (int i = 0; i < attributeCount; i++) {
-//			String key = attributeEntries[i]->key;
-//			String value = attributeEntries[i]->value;
-//			json += "\"";
-//			json += key;
-//			json += "\": ";
-//			json += value;
-//			if (i != attributeCount - 1 ) {
-//				json += ", ";
-//			}
-//		}
-//		json += "}";
-//		this->json = json;
-	}
-
-	String getEntriesAsJson() {
-		return json;
+	void printEntriesAsJson(Print* print) {
+		print->print(F("{"));
+		for (int i = 0; i < attributeCount; i++) {
+			const char* key = attributeEntries[i]->key;
+			const char* value = attributeEntries[i]->value;
+			print->print(F("\""));
+			print->print(key);
+			print->print(F("\": "));
+			print->print(value);
+			print->print(F(", "));
+		}
+		print->print(F("\"FREE_MEM\": "));
+		print->print(freeRam());
+		print->print(F("}"));
 	}
 
 protected:
@@ -103,7 +82,22 @@ protected:
 
 	int attributeCount;
 
-	String json;
+	//int freeRam() {
+	//	extern int __heap_start, *__brkval;
+	//	int v;
+	//	return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+	//}
+
+	int freeRam() {
+		 int size = 2048; // Use 2048 with ATmega328
+		  byte *buf;
+
+		  while ((buf = (byte *) malloc(--size)) == NULL) ;
+
+		  free(buf);
+
+		  return size;
+	}
 
 };
 
