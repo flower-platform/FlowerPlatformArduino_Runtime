@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <WString.h>
 
-#define DEBUG_HTTP_SERVER 0
+#define DEBUG_HTTP_SERVER 1
 
 #define URL_MAP_SIZE 16
 #define LINE_BUFFER_SIZE 128
@@ -74,14 +74,18 @@ public:
 						#endif
 
 						if (currentLineSize == 0) {
-							dispatchEvent(requestMethod, requestUrl, activeClient);
+							// TODO CS: temp
+							dispatchEvent("", "getUpdates", NULL);
+//							dispatchEvent(requestMethod, requestUrl, activeClient);
 							break;
 						}
 
 						String line(currentLine);
 						if (line.startsWith("GET") || line.startsWith("POST")) {
 							requestMethod = line.substring(0, line.indexOf(' '));
-							requestUrl = line.substring(requestMethod.length() + 2, line.indexOf(' ', requestMethod.length() + 2));
+							// TODO CS: temp
+//							requestUrl = line.substring(requestMethod.length() + 2, line.indexOf(' ', requestMethod.length() + 2));
+//							requestUrl = "getUpdates";
 						}
 						currentLineSize = 0;
 					}
@@ -132,8 +136,14 @@ public:
 		UrlMapping mapping;
 		for (int i = 0; i < urlCount; i++) {
 			mapping = urlMappings[i];
+			// TODO CS: temp	
+			Serial.print(i); Serial.print(i); Serial.println(mapping.url);
 			if (mapping.url.equals(requestUrl) || mapping.url == "*") {
+				// TODO CS: temp
+				Serial.println("before");
 				mapping.listener->handleEvent(&event);
+				// TODO CS: temp
+				Serial.println("after");
 			}
 		}
 
