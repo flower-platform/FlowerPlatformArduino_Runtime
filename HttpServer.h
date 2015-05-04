@@ -9,9 +9,9 @@
 #include <Ethernet.h>
 #include <EthernetServer.h>
 #include <FlowerPlatformArduinoRuntime.h>
-#include <HardwareSerial.h>
 #include <stdint.h>
 #include <string.h>
+#include <WString.h>
 
 #define DEBUG_HTTP_SERVER 0
 
@@ -23,7 +23,7 @@ class HttpServer;
 class HttpCommandEvent : public Event {
 public:
 
-	String command;
+	const char* command;
 
 	HttpServer* server;
 
@@ -98,7 +98,7 @@ public:
 		}
 	}
 
-	void addUrlHandler(String url, Listener* listener) {
+	void addUrlHandler(const char* url, Listener* listener) {
 	    if (urlCount >= URL_MAP_SIZE) {
 
 	    	#if DEBUG_HTTP_SERVER > 0
@@ -111,7 +111,7 @@ public:
 	    urlMappings[urlCount++].listener = listener;
 	}
 
-	void httpSuccess(const char *contentType = "text/html; charset=utf-8") {
+	void httpSuccess(const char* contentType = "text/html; charset=utf-8") {
 		activeClient->println(F("HTTP/1.1 200 OK"));
 		activeClient->print(F("Content-Type: ")); activeClient->println(contentType);
 		activeClient->println(F("Access-Control-Allow-Origin: *"));
@@ -133,7 +133,7 @@ public:
 		UrlMapping mapping;
 		for (int i = 0; i < urlCount; i++) {
 			mapping = urlMappings[i];
-			if (mapping.url.equals(requestUrl) || mapping.url == "*") {
+			if (strcmp(mapping.url, requestUrl) == 0 || mapping.url[0] == '*') {
 				mapping.listener->handleEvent(&event);
 			}
 		}
@@ -154,7 +154,7 @@ protected:
 	EthernetClient* activeClient;
 
 	struct UrlMapping {
-		String url;
+		const char* url;
 		Listener* listener;
 	} urlMappings[URL_MAP_SIZE];
 
